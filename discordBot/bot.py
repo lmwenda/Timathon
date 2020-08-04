@@ -10,7 +10,7 @@ token = "YOUR_TOKEN_HERE"
 client = discord.Client()
 
 def emptyString():
-    temp = randint(0, 200)
+    temp = randint(0, 220)
     string = ""
     while temp > 0:
         temp -= 1
