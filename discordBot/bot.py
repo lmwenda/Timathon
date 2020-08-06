@@ -105,7 +105,7 @@ async def on_message(message):
 
             guess = await client.wait_for("message")
 
-            if guess.content == "~stop" and message.author == user:
+            if guess.content == "~stop" and guess.author == user:
                 await message.channel.send("Game stopped...")
                 break
             elif len(guess.content) != 1:
