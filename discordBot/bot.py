@@ -1,16 +1,23 @@
-import discord
-from random import randint
-from random_username.generate import generate_username
-import string
 import time
+from random import randint
+import discord
 import requests
+from random_username.generate import generate_username
+
+help = """```
+~help = List of commands
+~roll = Play the Roll Number Game
+~username = Returns a random username
+~emoji = Returns a random server emoji, jumping around
+~hangman = Play the Hangman Game
+```"""
 
 randomWordAPI = "https://random-word-api.herokuapp.com/word?number=1"
 token = "YOUR_TOKEN_HERE"
 client = discord.Client()
 
 def emptyString():
-    temp = randint(0, 220)
+    temp = randint(0, 200)
     string = ""
     while temp > 0:
         temp -= 1
@@ -18,14 +25,18 @@ def emptyString():
 
     return string
 
-
 @client.event
 async def on_message(message):
+    ################################################ HELP ################################################
+    if message.content.startswith("~help"):
+        embed = discord.Embed(colour=discord.Color.teal())
+        embed.add_field(name="Command Help List", value=help)
+        await message.channel.send(content=None, embed=embed)
     ################################################ ROLL NUMBER GAME ################################################
-    if message.content.startswith("!play"):
+    elif message.content.startswith("~roll"):
         sender = message.author
         against = message.content.split(" ")[1]
-        againstId = against.split("!")[1][:-1]
+        againstId = against.split("~")[1][:-1]
         temp = await client.fetch_user(againstId)
         againstUser = temp
         user1 = randint(0,100)
@@ -43,11 +54,11 @@ async def on_message(message):
         await message.channel.send(content=None, embed=embed)
 
     ################################################ RANDOM USERNAME ################################################
-    elif message.content.startswith("!username"):
+    elif message.content.startswith("~username"):
         await message.channel.send(generate_username(1)[0])
 
     ################################################ RANDOM EMOJI IN CHAT ################################################
-    elif message.content.startswith("!q"):
+    elif message.content.startswith("~emoji"):
         string = emptyString()
         emoji = str(message.guild.emojis[randint(0, len(message.guild.emojis) - 1)])
         #a = await message.channel.send("```{}{{}}{}```".format(string, emoji, string))
@@ -63,7 +74,8 @@ async def on_message(message):
             await a.edit(content=f"|{string}{emoji}{string}|")
 
     ################################################ HANGMAN ################################################
-    elif message.content.startswith("!hangman"):
+    elif message.content.startswith("~hangman"):
+        user = message.author
         await message.channel.send("Let's play a game!")
         time.sleep(1)
         await message.channel.send("Start guessing...")
@@ -93,7 +105,7 @@ async def on_message(message):
 
             guess = await client.wait_for("message")
 
-            if guess.content == "!stop":
+            if guess.content == "~stop" and message.author == user:
                 await message.channel.send("Game stopped...")
                 break
             elif len(guess.content) != 1:
@@ -114,7 +126,8 @@ async def on_message(message):
                 else:
                     await message.channel.send("Character '" + guess.content + "' already guessed!")
 
-    elif message.content.startswith("!test"):
+    ################################################ TESTING GROUNDS ################################################
+    elif message.content.startswith("~test"):
         a = "a"
         string = "sd"
         if a in string:
