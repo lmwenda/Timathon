@@ -13,6 +13,8 @@ help = """```
 ~username = Returns a random username
 ~emoji = Returns a random server emoji, jumping around
 ~hangman = Play the Hangman Game
+~play = Play song in current voice channel
+~leave = Leave the current voice channel and clean Queue
 ```"""
 
 randomWordAPI = "https://random-word-api.herokuapp.com/word?number=1"
