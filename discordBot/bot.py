@@ -3,6 +3,9 @@ from random import randint
 import discord
 import requests
 from random_username.generate import generate_username
+import youtube_dl
+import os
+from youtube_search import YoutubeSearch
 
 help = """```
 ~help = List of commands
@@ -126,13 +129,63 @@ async def on_message(message):
                 else:
                     await message.channel.send("Character '" + guess.content + "' already guessed!")
 
+    ################################################ YOUTUBE - PLAY SONG ################################################
+    elif message.content.startswith("~play"):
+        dirCount = len(os.listdir("./Queue"))
+        video = message.content.split(" ", 1)[1]
+        await message.channel.send("Searching for: `{}`".format(video))
+        urlSuffix = YoutubeSearch(video).to_dict()[0]["url_suffix"]
+        url = "https://www.youtube.com" + urlSuffix
+
+        def cleanQueue(path):
+            os.remove(path)
+
+            songCounter = len(os.listdir("./Queue"))
+
+            if songCounter == 0:
+                print("STOP PLAYING")
+            else:
+                nextSong = "C:/Users/Nabernik/PycharmProjects/discordBot/Queue/" + os.listdir("./Queue/")[0]
+                connected.play(discord.FFmpegPCMAudio(nextSong), after=lambda e: cleanQueue(nextSong))
+
+        if dirCount == 0:
+            songNumber = 0
+        else:
+            songNumber = int(os.listdir("./Queue/")[-1].split(".")[0].split("g")[1]) + 1
+
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': 'C:/Users/Nabernik/PycharmProjects/discordBot/Queue/song' + str(songNumber) + '.mp3',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+
+        with youtube_dl.YoutubeDL(ydl_opts) as ytdl:
+            extract = ytdl.extract_info(url)
+            print(extract)
+
+        if dirCount == 0:
+            server = message.author.voice.channel.id
+            vc = client.get_channel(server)
+            connected = await vc.connect()
+            path = "C:/Users/Nabernik/PycharmProjects/discordBot/Queue/song" + str(int(os.listdir("./Queue/")[-1].split(".")[0].split("g")[1])) + ".mp3"
+            # await ctx.message.channel.send("Now playing song: {}".format(title))
+            connected.play(discord.FFmpegPCMAudio(path), after=lambda e: cleanQueue(path))
+
+    ################################################ YOUTUBE - LEAVE CHANNEL ################################################
+    elif message.content.startswith("~leave"):
+        await client.voice_clients[0].disconnect()
+        time.sleep(1)
+        files = os.listdir("./Queue/")
+        for file in files:
+            os.remove("C:/Users/Nabernik/PycharmProjects/discordBot/Queue/" + file)
+
     ################################################ TESTING GROUNDS ################################################
     elif message.content.startswith("~test"):
-        a = "a"
-        string = "sd"
-        if a in string:
-            print("A")
-        else:
-            print("B")
+        a = message.content.split(" ", 1)
+        print(a)
 
 client.run(token)
