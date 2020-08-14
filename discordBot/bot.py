@@ -1,22 +1,18 @@
+import pathlib
 import time
 from random import randint
 import discord
 import requests
 from random_username.generate import generate_username
 import youtube_dl
-from discord.ext import commands
+from discord.ext import commands, tasks
 import os
 import webbrowser
+from youtube_search import YoutubeSearch
 
 players = {}
-
-help = """```
-~help = List of commands
-~roll = Play the Roll Number Game
-~username = Returns a random username
-~emoji = Returns a random server emoji, jumping around
-~hangman = Play the Hangman Game
-```"""
+songNames = {}
+dirName = str(pathlib.Path(__file__).parent.absolute())
 
 randomWordAPI = "https://random-word-api.herokuapp.com/word?number=1"
 token = "YOUR_TOKEN_HERE"
@@ -24,16 +20,8 @@ bot = commands.Bot(command_prefix="~")
 
 @bot.event
 async def on_ready():
-    presence = discord.Game("Yay, Voice Commands work now")
-    print("READY")
+    presence = discord.Game("with myself")
     await bot.change_presence(status=discord.Status.idle, activity=presence)
-
-################################################ HELP ################################################
-@bot.command(pass_context=True)
-async def help1(ctx):
-    embed = discord.Embed(colour=discord.Color.teal())
-    embed.add_field(name="Command Help List", value=help)
-    await ctx.message.channel.send(content=None, embed=embed)
 
 @bot.command(pass_context=True)
 async def roll(ctx):
@@ -121,13 +109,16 @@ async def join(ctx):
     voiceChannel = ctx.message.author.voice.channel.id
     vc = bot.get_channel(voiceChannel)
     a = await vc.connect()
-    #print(voice)
-    #await client.join_voice_channel(channel)
 
 ################################################ YOUTUBE - PLAY MUSIC ################################################
 @bot.command(pass_context=True)
 async def play(ctx, url):
     dirCount = len(os.listdir("./Queue"))
+    video = ctx.message.content.split(" ", 1)[1]
+    await ctx.message.channel.send("Searching for: `{}`".format(video))
+    urlSuffix = YoutubeSearch(video).to_dict()[0]["url_suffix"]
+    url = "https://www.youtube.com" + urlSuffix
+
     def cleanQueue(path):
         os.remove(path)
 
@@ -136,8 +127,11 @@ async def play(ctx, url):
         if songCounter == 0:
             print("STOP PLAYING")
         else:
-            nextSong = "C:/Users/Nabernik/PycharmProjects/discordBot/Queue/" + os.listdir("./Queue/")[0]
+            nextSong = dirName + "/Queue/" + os.listdir("./Queue/")[0]
             connected.play(discord.FFmpegPCMAudio(nextSong), after=lambda e: cleanQueue(nextSong))
+            #await ctx.message.channel.send("Now playing `{}`".format(songNames[os.listdir("./Queue/")[0].replace(".mp3","")]))
+            #await ctx.message.channel.send("A")
+            #a(ctx)
 
     if dirCount == 0:
         songNumber = 0
@@ -146,7 +140,7 @@ async def play(ctx, url):
 
     ydl_opts = {
         'format': 'bestaudio/best',
-        'outtmpl': 'C:/Users/Nabernik/PycharmProjects/discordBot/Queue/song' + str(songNumber) + '.mp3',
+        'outtmpl': dirName + '/Queue/song' + str(songNumber) + '.mp3',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -155,29 +149,33 @@ async def play(ctx, url):
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ytdl:
-        title = ytdl.extract_info(url)["title"]
+        extract = ytdl.extract_info(url)
+        title = extract["title"]
+        songNames["song" + str(songNumber)] = title
+        await ctx.message.channel.send("Song `{}` added to Queue".format(title))
 
     if dirCount == 0:
         server = ctx.message.author.voice.channel.id
         vc = bot.get_channel(server)
         connected = await vc.connect()
-        path = "C:/Users/Nabernik/PycharmProjects/discordBot/Queue/song" + str(int(os.listdir("./Queue/")[-1].split(".")[0].split("g")[1])) + ".mp3"
-        #await ctx.message.channel.send("Now playing song: {}".format(title))
+        path = dirName + "/Queue/song" + str(int(os.listdir("./Queue/")[-1].split(".")[0].split("g")[1])) + ".mp3"
+        #await ctx.message.channel.send("Now playing song: `{}`".format(title))
         connected.play(discord.FFmpegPCMAudio(path), after=lambda e: cleanQueue(path))
 
 ################################################ YOUTUBE - LEAVE THE CHANNEL AND RESET QUEUE ################################################
 @bot.command(pass_context=True)
 async def leave(ctx):
     await bot.voice_clients[0].disconnect()
+    await ctx.message.channel.send("Cleaned Queue")
     time.sleep(1)
     files = os.listdir("./Queue/")
     for file in files:
-        os.remove("C:/Users/Nabernik/PycharmProjects/discordBot/Queue/" + file)
+        os.remove(dirName + "/Queue/" + file)
 
 ################################################ OPEN URL IN BROWSER ################################################
 @bot.command(pass_context=True)
-async def open(ctx):
-    webbrowser.open("https://docs.python.org/3/library/webbrowser.html")
+async def open(ctx, url):
+    webbrowser.open(url)
 
 ################################################ TESTING GROUNDS ################################################
 @bot.command(pass_context=True)
