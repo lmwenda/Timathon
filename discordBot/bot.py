@@ -22,11 +22,12 @@ bot = commands.Bot(command_prefix="~")
 async def on_ready():
     presence = discord.Game("with myself")
     await bot.change_presence(status=discord.Status.idle, activity=presence)
+    print("READY")
 
 @bot.command(pass_context=True)
-async def roll(ctx):
+async def roll(ctx, against):
     sender = ctx.message.author
-    against = ctx.message.content.split(" ")[1]
+    #against = ctx.message.content.split(" ")[1]
     againstId = against.split("!")[1][:-1]
     temp = await bot.fetch_user(againstId)
     againstUser = temp
@@ -179,7 +180,8 @@ async def open(ctx, url):
 
 ################################################ TESTING GROUNDS ################################################
 @bot.command(pass_context=True)
-async def test(ctx):
-    print("A")
+async def test(ctx, a):
+    print(ctx)
+    print(a)
 
 bot.run(token)
