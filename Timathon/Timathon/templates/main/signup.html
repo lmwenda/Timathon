@@ -1,0 +1,79 @@
+<form method="POST" action="">
+	<h1 class="title">Register</h1>
+	<hr>
+	{% csrf_token %}
+	{{form.as_p}}
+	<input id="login" type="submit" name="Register Account" value="Register Account">
+
+	<a id="redirect" href="/login">Already have an Account? Log in.</a>
+	
+</form>
+
+<style type="text/css">
+	body{
+		font-family: sans-serif;
+	} 
+
+    h1{
+    	float: center;
+    	text-transform: uppercase;
+    }
+
+    .title{
+    	float: center;
+    	right: 50%;
+    	text-align: center;
+    }
+
+    input{
+	  display: block;
+	  width: 100%;
+	  border: 2px solid #000;
+	  padding: .5rem;
+	  font-size: 18px;
+	  border-radius: 5px;
+	  transition: 0.6s ease;
+	}
+
+	form{
+		max-width: 48%;
+		color: #fff;
+	    margin: 2rem auto;
+	    border: 2px solid  #222;
+	    background: #222;
+		padding: 2rem;
+		border-radius: 5px;
+	    transition: 0.6s ease;
+	}
+
+	#login{
+	  border: 0;
+	  width: 100%;
+	  height: 60px;
+	  border-radius: 5px;
+	  font-size: 22px;
+	  padding: 1rem 0;
+	  text-transform: uppercase;
+	  color: white;
+	  background: #1f82a6;
+	  transition: 0.6s ease;
+	  display: block;
+	  cursor: pointer;
+	  transition: 0.6s ease;
+	}
+
+	#login:hover{
+		background: #ff032d;
+		transition: 0.6s ease;
+		cursor: progress;
+	}
+
+	#redirect{
+		font-size: 22px;
+		cursor: pointer;
+		color: blue;
+		text-align: right;
+		float: right;
+	}
+    
+</style>
